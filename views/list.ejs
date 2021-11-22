@@ -3,14 +3,15 @@
     <div class="box" id="heading">
         <h1 class="h1"><%=listType%></h1>
     </div>
-    <div class="box">
-        <h2 class="h2 text-center">To Do List:</h2>
+    <div class="box p-2">
+        <h2 class="h2 text-center mt-4 mb-4">To Do List:</h2>
             <%newListItems.forEach(function(item){%>
                 <form action="/delete" method="post">
                     <div class="item">
                         <button type="submit" id="check-box" name="checkbox" value="<%=item._id%>">
                             <h6 class="h6" id="check-mark">✔</h6>
                         </button>
+                        <input type="hidden" name="listPage" value="<%=listType%>">
                         <p><%=item.name%></p>
                     </div>
                 </form>

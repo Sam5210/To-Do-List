@@ -3,6 +3,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const _ = require("lodash");
 // const date = require(__dirname + "/date.js");
 
 //Mongoose setup
@@ -17,8 +18,8 @@ const Item = mongoose.model("Item", itemSchema);
 //Default items setup
 const affirmation0 = new Item ({name: "The following are default entries."})
 const affirmation1 = new Item ({name: "Enjoy the day."});
-const affirmation2 = new Item ({name: "Create a future you want from today."});
-const affirmation3 = new Item ({name: "Just do it."});
+const affirmation2 = new Item ({name: "Create a future you want."});
+const affirmation3 = new Item ({name: "Believe in your Self."});
 const defaultItems = [affirmation0, affirmation1, affirmation2, affirmation3];
 
 //List schema setup
@@ -80,28 +81,41 @@ app.post("/", function(request, response){
 });
 
 app.post("/delete", function(request, response){
-    const item = request.body.checkbox;
-    Item.deleteOne({_id: item}, function(error){
-        if(error){
-            console.log(error);
-        }
-        else{
-            console.log("Successfully deleted item.");
-            response.redirect("/");
-        }
-    });
+    const itemId = request.body.checkbox;
+    const listName = request.body.listPage;
+    if(listName == "Today"){
+        Item.deleteOne({_id: itemId}, function(error){
+            if(error){
+                console.log(error);
+            }
+            else{
+                console.log("Successfully deleted item.");
+                response.redirect("/");
+            }
+        });
+    }
+    else{
+        List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: itemId}}}, function(error, result){
+            if(error){
+                console.log(error);
+            }
+            else{
+                response.redirect("/" + listName);
+            }
+        });
+    }
 });
 app.get("/favicon.ico", function(request, response){response.send("<h1>Favicon</h1>")});
 
 app.get("/:route", function(request, response){
-    const customListName = request.params.route;
+    const customListName = _.capitalize(request.params.route);
     List.findOne({name: customListName}, function(error, result){
         if(error){
             console.log(error);
             response.send("Error has occurred.");
         }
         else{
-            if(result){
+            if(result && result.items.length > 0){
                 response.render("list", {listType: result.name, newListItems: result.items});
             }
             else{
