@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 // const date = require(__dirname + "/date.js");
 
 //Mongoose setup
-mongoose.connect("mongodb://localhost:27017/toDoListDB", {useNewUrlParser: true});
+mongoose.connect("mongodb+srv://JBHSS:Orient2020!@cluster0.zcndj.mongodb.net/test?retryWrites=true&w=majority", {useNewUrlParser: true});
 
 //Item schema setup
 const itemSchema = new mongoose.Schema({
@@ -40,6 +40,7 @@ app.get("/", function(request, response){
             console.log(error);
         }   
         else{
+            console.log(`The number of items is: ${items.length}`);
             if(items.length == 0){
                 response.render("list", {listType: "Today", newListItems: defaultItems});
             }
@@ -54,9 +55,12 @@ app.post("/", function(request, response){
     const itemName = request.body.userInputList;
     const listName = request.body.listPage;
     const item = new Item ({name: itemName});
-    if(listName === "Today"){
-        item.save();
-        response.redirect("/");
+    if(listName == "Today"){
+        let save = async function(){
+            await item.save();
+            response.redirect("/");
+        }
+        save();
     }
     else{
         List.findOne({name: listName}, function(error, result){
@@ -65,8 +69,11 @@ app.post("/", function(request, response){
             }
             else{
                 result.items.push(item);
-                result.save();
-                response.redirect("/" + listName);
+                let save = async function(){
+                    await result.save();
+                    response.redirect("/" + listName);
+                }
+                save();
             }
         });
     }
@@ -102,8 +109,13 @@ app.get("/:route", function(request, response){
                     name: customListName,
                     items: []
                 });
-                list.save();
-                response.render("list", {listType: customListName, newListItems: defaultItems});
+                let save = async function(){
+                    await list.save();
+                    response.render("list", {listType: customListName, newListItems: defaultItems});
+                }
+                save();
+                // list.save();
+                // response.render("list", {listType: customListName, newListItems: defaultItems});
             }
         }
     });
@@ -111,3 +123,13 @@ app.get("/:route", function(request, response){
 });
 
 app.listen(process.env.PORT || 3000);
+
+async function Save(element, response, action, param){
+    await element.save();
+    if(action == "redirect"){
+        response.redirect(param);
+    }
+    else if(action == "render"){
+        response.render(param);
+    }
+}
