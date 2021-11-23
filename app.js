@@ -115,8 +115,13 @@ app.get("/:route", function(request, response){
             response.send("Error has occurred.");
         }
         else{
-            if(result && result.items.length > 0){
-                response.render("list", {listType: result.name, newListItems: result.items});
+            if(result){
+                if(result.items.length == 0){
+                    response.render("list", {listType: result.name, newListItems: defaultItems});
+                }
+                else{
+                    response.render("list", {listType: result.name, newListItems: result.items});
+                }
             }
             else{
                 const list = new List ({
